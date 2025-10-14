@@ -686,7 +686,10 @@ document.addEventListener('DOMContentLoaded', () => {
   const token = localStorage.getItem('access_token');
   const guestMode = localStorage.getItem('guest_mode');
 
+  console.log('Auth check:', { token: !!token, guestMode: !!guestMode });
+
   if (!token && !guestMode) {
+    console.log('No auth found, redirecting to auth.html');
     window.location.href = 'auth.html';
     return;
   }
