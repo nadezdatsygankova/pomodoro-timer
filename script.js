@@ -682,23 +682,34 @@ async function logout() {
 
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
-  // Check authentication (either token or guest mode)
+  // Check authentication
   const token = localStorage.getItem('access_token');
   const guestMode = localStorage.getItem('guest_mode');
+  const userEmail = localStorage.getItem('user_email');
 
   console.log('Auth check:', { token: !!token, guestMode: !!guestMode });
 
-  if (!token && !guestMode) {
-    console.log('No auth found, redirecting to auth.html');
-    window.location.href = 'auth.html';
-    return;
+  // Show appropriate UI based on auth status
+  const authButtons = document.getElementById('authButtons');
+  const userInfo = document.getElementById('userInfo');
+
+  if (token && userEmail) {
+    // User is signed in - show user info
+    document.getElementById('userEmail').textContent = userEmail;
+    authButtons.style.display = 'none';
+    userInfo.style.display = 'flex';
+  } else {
+    // User is not signed in - show sign in button
+    authButtons.style.display = 'flex';
+    userInfo.style.display = 'none';
   }
 
-  // Show user info (only if not in guest mode)
-  const userEmail = localStorage.getItem('user_email');
-  if (userEmail && !guestMode) {
-    document.getElementById('userEmail').textContent = userEmail;
-    document.getElementById('userInfo').style.display = 'flex';
+  // Sign in button
+  const signInBtn = document.getElementById('signInBtn');
+  if (signInBtn) {
+    signInBtn.addEventListener('click', () => {
+      window.location.href = 'auth.html';
+    });
   }
 
   // Logout button

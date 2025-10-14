@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,6 +10,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
+
 <body>
     <div class="container">
         <header>
@@ -17,9 +19,16 @@
                     <h1>🍅 Pomodoro Timer</h1>
                     <p class="subtitle">Focus on what matters</p>
                 </div>
+                <div id="authButtons" style="display: flex; gap: 10px; align-items: center;">
+                    <button class="btn btn-secondary" id="signInBtn" style="padding: 8px 16px;">
+                        <span class="btn-icon">🔐</span>
+                        <span>Sign In</span>
+                    </button>
+                </div>
                 <div id="userInfo" style="display: none;">
                     <span id="userEmail" style="color: white; margin-right: 15px;"></span>
-                    <button class="btn btn-secondary" onclick="window.location.href='dashboard-supabase.html'" style="padding: 8px 16px;">
+                    <button class="btn btn-secondary" onclick="window.location.href='dashboard-supabase.html'"
+                        style="padding: 8px 16px;">
                         <span class="btn-icon">📊</span>
                         <span>Dashboard</span>
                     </button>
@@ -83,14 +92,9 @@
             <!-- Tasks Section -->
             <div class="tasks-section">
                 <h2>Tasks</h2>
-                
+
                 <div class="task-input-container">
-                    <input 
-                        type="text" 
-                        id="taskInput" 
-                        placeholder="Add a new task..." 
-                        class="task-input"
-                    >
+                    <input type="text" id="taskInput" placeholder="Add a new task..." class="task-input">
                     <button class="btn btn-add" id="addTaskBtn">
                         <span class="btn-icon">+</span>
                     </button>
@@ -132,14 +136,14 @@
                     </button>
                 </div>
             </div>
-            
+
             <div class="activity-filters">
                 <button class="filter-btn active" data-filter="all">All</button>
                 <button class="filter-btn" data-filter="work">Work Sessions</button>
                 <button class="filter-btn" data-filter="break">Breaks</button>
                 <button class="filter-btn" data-filter="task">Tasks</button>
             </div>
-            
+
             <div class="activity-list" id="activityList">
                 <!-- Activities will be added here dynamically -->
             </div>
@@ -154,5 +158,5 @@
     <script src="api-supabase.js"></script>
     <script src="script.js"></script>
 </body>
-</html>
 
+</html>
