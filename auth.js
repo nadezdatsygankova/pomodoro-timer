@@ -12,10 +12,25 @@ const successMessage = document.getElementById('successMessage');
 const signinBtn = document.getElementById('signinBtn');
 const signupBtn = document.getElementById('signupBtn');
 
+// Flag to prevent redirect during user interaction
+let isUserInteracting = false;
+
 // Tab switching
-signinTab.addEventListener('click', () => switchTab('signin'));
-signupTab.addEventListener('click', () => switchTab('signup'));
-document.querySelector('[data-tab="guest"]').addEventListener('click', () => switchTab('guest'));
+signinTab.addEventListener('click', () => {
+  isUserInteracting = true;
+  switchTab('signin');
+  setTimeout(() => { isUserInteracting = false; }, 500);
+});
+signupTab.addEventListener('click', () => {
+  isUserInteracting = true;
+  switchTab('signup');
+  setTimeout(() => { isUserInteracting = false; }, 500);
+});
+document.querySelector('[data-tab="guest"]').addEventListener('click', () => {
+  isUserInteracting = true;
+  switchTab('guest');
+  setTimeout(() => { isUserInteracting = false; }, 500);
+});
 
 function switchTab(tab) {
   // Update tabs
@@ -188,5 +203,24 @@ document.getElementById('guestBtn').addEventListener('click', () => {
 
   // Redirect to main app
   window.location.href = 'index.html';
+});
+
+// Check if already authenticated when page loads
+window.addEventListener('DOMContentLoaded', () => {
+  // Add a delay to prevent flashing/blinking during page load
+  setTimeout(() => {
+    // Don't redirect if user is actively interacting with the page
+    if (isUserInteracting) {
+      return;
+    }
+    
+    const token = localStorage.getItem('access_token');
+    const guestMode = localStorage.getItem('guest_mode');
+    
+    // If already logged in (token or guest mode), redirect to main app
+    if (token || guestMode) {
+      window.location.href = 'index.html';
+    }
+  }, 300);
 });
 
