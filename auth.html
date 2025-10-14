@@ -207,6 +207,7 @@
     <div class="auth-tabs">
       <button class="auth-tab active" data-tab="signin">Sign In</button>
       <button class="auth-tab" data-tab="signup">Sign Up</button>
+      <button class="auth-tab" data-tab="guest">Continue as Guest</button>
     </div>
 
     <div class="error-message" id="errorMessage"></div>
@@ -248,6 +249,23 @@
         Sign Up
       </button>
     </form>
+
+    <!-- Guest Mode -->
+    <div class="auth-form" id="guestForm">
+      <div style="text-align: center; padding: 20px;">
+        <div style="font-size: 3rem; margin-bottom: 20px;">👤</div>
+        <h3 style="margin-bottom: 15px;">Continue as Guest</h3>
+        <p style="color: var(--text-secondary); margin-bottom: 25px;">
+          Try the Pomodoro Timer without signing up. Your data will be saved locally on this device.
+        </p>
+        <button type="button" class="auth-btn" id="guestBtn" style="width: 100%;">
+          Start as Guest
+        </button>
+        <p style="margin-top: 15px; font-size: 0.9rem; color: var(--text-secondary);">
+          You can sign up later to sync your data across devices
+        </p>
+      </div>
+    </div>
   </div>
 
   <script src="auth.js"></script>

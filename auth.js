@@ -15,18 +15,19 @@ const signupBtn = document.getElementById('signupBtn');
 // Tab switching
 signinTab.addEventListener('click', () => switchTab('signin'));
 signupTab.addEventListener('click', () => switchTab('signup'));
+document.querySelector('[data-tab="guest"]').addEventListener('click', () => switchTab('guest'));
 
 function switchTab(tab) {
-  // Update tabs
-  document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
-  document.querySelector(`[data-tab="${tab}"]`).classList.add('active');
-
-  // Update forms
-  document.querySelectorAll('.auth-form').forEach(f => f.classList.remove('active'));
-  document.getElementById(`${tab}Form`).classList.add('active');
-
-  // Clear messages
-  hideMessage();
+    // Update tabs
+    document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
+    document.querySelector(`[data-tab="${tab}"]`).classList.add('active');
+    
+    // Update forms
+    document.querySelectorAll('.auth-form').forEach(f => f.classList.remove('active'));
+    document.getElementById(`${tab}Form`).classList.add('active');
+    
+    // Clear messages
+    hideMessage();
 }
 
 // Show error message
@@ -178,12 +179,25 @@ document.getElementById('forgotPasswordLink').addEventListener('click', (e) => {
   showError('Password reset feature coming soon!');
 });
 
+// Guest mode
+document.getElementById('guestBtn').addEventListener('click', () => {
+    // Set guest mode flag
+    localStorage.setItem('guest_mode', 'true');
+    localStorage.setItem('user_id', 'guest_' + Date.now());
+    localStorage.setItem('user_email', 'Guest User');
+    
+    // Redirect to main app
+    window.location.href = 'index.html';
+});
+
 // Check if already logged in
 window.addEventListener('DOMContentLoaded', () => {
-  const token = localStorage.getItem('access_token');
-  if (token) {
-    // Already logged in, redirect to main app
-    window.location.href = 'index.html';
-  }
+    const token = localStorage.getItem('access_token');
+    const guestMode = localStorage.getItem('guest_mode');
+    
+    if (token || guestMode) {
+        // Already logged in or in guest mode, redirect to main app
+        window.location.href = 'index.html';
+    }
 });
 
