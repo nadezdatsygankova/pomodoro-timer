@@ -3,7 +3,12 @@ const SUPABASE_URL = 'https://hxhklmfayeqgzrogcfql.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh4aGtsbWZheWVxZ3pyb2djZnFsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA0NTI0ODMsImV4cCI6MjA3NjAyODQ4M30.AL-mYcyG07cWZWg9Q7XfWaBsySnlfUCGp7uKBjKy0h8';
 
 // Initialize Supabase client
-const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+let supabase;
+if (typeof createClient !== 'undefined') {
+  supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+} else {
+  console.error('Supabase library not loaded. Please ensure @supabase/supabase-js is loaded before this script.');
+}
 
 // Get auth token
 function getAuthToken() {
