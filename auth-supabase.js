@@ -24,7 +24,8 @@ if (typeof createClient !== 'undefined') {
 // DOM Elements - will be set when DOM is ready
 let signinTab, signupTab, signinForm, signupForm, errorMessage, successMessage, signinBtn, signupBtn;
 
-function switchTab(tab) {
+// Make switchTab available globally for inline onclick handlers
+window.switchTab = function(tab) {
   // Update tabs
   document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
   document.querySelector(`[data-tab="${tab}"]`).classList.add('active');
