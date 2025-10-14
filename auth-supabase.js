@@ -73,6 +73,15 @@ function storeAuthData(session) {
   localStorage.removeItem('guest_mode'); // Clear guest mode when signing in
 }
 
+// Clear auth data
+function clearAuthData() {
+  localStorage.removeItem('access_token');
+  localStorage.removeItem('refresh_token');
+  localStorage.removeItem('user_id');
+  localStorage.removeItem('user_email');
+  localStorage.removeItem('guest_mode');
+}
+
 // Sign in
 signinForm.addEventListener('submit', async (e) => {
   e.preventDefault();
@@ -186,7 +195,7 @@ window.addEventListener('DOMContentLoaded', () => {
   setTimeout(() => {
     const token = localStorage.getItem('access_token');
     const guestMode = localStorage.getItem('guest_mode');
-    
+
     // If already logged in (token or guest mode), redirect to main app
     if (token || guestMode) {
       window.location.href = 'index.html';
