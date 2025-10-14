@@ -12,14 +12,14 @@ function getAuthToken() {
 
 // Check if user is authenticated
 function isAuthenticated() {
-    const token = getAuthToken();
-    const guestMode = localStorage.getItem('guest_mode');
-    return !!token || !!guestMode;
+  const token = getAuthToken();
+  const guestMode = localStorage.getItem('guest_mode');
+  return !!token || !!guestMode;
 }
 
 // Check if in guest mode
 function isGuestMode() {
-    return !!localStorage.getItem('guest_mode');
+  return !!localStorage.getItem('guest_mode');
 }
 
 // Get user ID from auth
@@ -46,128 +46,128 @@ function clearAuthData() {
 
 // API Helper Functions
 const api = {
-    // Get all data
-    async getData() {
-        try {
-            // Check if in guest mode
-            if (isGuestMode()) {
-                // Use localStorage for guest mode
-                return this.getLocalData();
-            }
-            
-            const token = getAuthToken();
-            if (!token) {
-                window.location.href = 'auth.html';
-                return;
-            }
-            
-            // Set auth header
-            supabase.auth.setSession({ access_token: token, refresh_token: localStorage.getItem('refresh_token') });
-            
-            const userId = getUserId();
-            
-            // Get tasks
-            const { data: tasks, error: tasksError } = await supabase
-                .from('tasks')
-                .select('*')
-                .eq('user_id', userId)
-                .order('created_at', { ascending: false });
+  // Get all data
+  async getData() {
+    try {
+      // Check if in guest mode
+      if (isGuestMode()) {
+        // Use localStorage for guest mode
+        return this.getLocalData();
+      }
 
-            if (tasksError) throw tasksError;
+      const token = getAuthToken();
+      if (!token) {
+        window.location.href = 'auth.html';
+        return;
+      }
 
-            // Get activities
-            const { data: activities, error: activitiesError } = await supabase
-                .from('activities')
-                .select('*')
-                .eq('user_id', userId)
-                .order('created_at', { ascending: false })
-                .limit(100);
+      // Set auth header
+      supabase.auth.setSession({ access_token: token, refresh_token: localStorage.getItem('refresh_token') });
 
-            if (activitiesError) throw activitiesError;
+      const userId = getUserId();
 
-            // Get statistics
-            const { data: stats, error: statsError } = await supabase
-                .from('statistics')
-                .select('*')
-                .eq('user_id', userId)
-                .single();
+      // Get tasks
+      const { data: tasks, error: tasksError } = await supabase
+        .from('tasks')
+        .select('*')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false });
 
-            const data = {
-                tasks: (tasks || []).map(task => ({
-                    id: task.id,
-                    text: task.text,
-                    completed: task.completed,
-                    timeSpent: task.time_spent
-                })),
-                activities: (activities || []).map(activity => ({
-                    type: activity.type,
-                    title: activity.title,
-                    duration: activity.duration,
-                    timestamp: activity.created_at
-                })),
-                statistics: {
-                    totalSessions: stats?.total_sessions || 0,
-                    totalFocusTime: stats?.total_focus_time || 0
-                }
-            };
+      if (tasksError) throw tasksError;
 
-            return data;
-        } catch (error) {
-            console.error('Error fetching data:', error);
-            return this.getLocalData();
+      // Get activities
+      const { data: activities, error: activitiesError } = await supabase
+        .from('activities')
+        .select('*')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false })
+        .limit(100);
+
+      if (activitiesError) throw activitiesError;
+
+      // Get statistics
+      const { data: stats, error: statsError } = await supabase
+        .from('statistics')
+        .select('*')
+        .eq('user_id', userId)
+        .single();
+
+      const data = {
+        tasks: (tasks || []).map(task => ({
+          id: task.id,
+          text: task.text,
+          completed: task.completed,
+          timeSpent: task.time_spent
+        })),
+        activities: (activities || []).map(activity => ({
+          type: activity.type,
+          title: activity.title,
+          duration: activity.duration,
+          timestamp: activity.created_at
+        })),
+        statistics: {
+          totalSessions: stats?.total_sessions || 0,
+          totalFocusTime: stats?.total_focus_time || 0
         }
-    },
+      };
 
-    // Save session
-    async saveSession(duration, type) {
-        try {
-            // Guest mode - just return success
-            if (isGuestMode()) {
-                return { success: true };
-            }
-            
-            const userId = getUserId();
-            
-            const { data, error } = await supabase
-                .from('sessions')
-                .insert([{ user_id: userId, duration, type }])
-                .select()
-                .single();
+      return data;
+    } catch (error) {
+      console.error('Error fetching data:', error);
+      return this.getLocalData();
+    }
+  },
 
-            if (error) throw error;
+  // Save session
+  async saveSession(duration, type) {
+    try {
+      // Guest mode - just return success
+      if (isGuestMode()) {
+        return { success: true };
+      }
 
-            // Update statistics
-            const { data: existingStats } = await supabase
-                .from('statistics')
-                .select('*')
-                .eq('user_id', userId)
-                .single();
+      const userId = getUserId();
 
-            if (existingStats) {
-                await supabase
-                    .from('statistics')
-                    .update({
-                        total_sessions: existingStats.total_sessions + 1,
-                        total_focus_time: existingStats.total_focus_time + duration,
-                        updated_at: new Date().toISOString()
-                    })
-                    .eq('user_id', userId);
-            } else {
-                await supabase
-                    .from('statistics')
-                    .insert([{
-                        user_id: userId,
-                        total_sessions: 1,
-                        total_focus_time: duration
-                    }]);
-            }
+      const { data, error } = await supabase
+        .from('sessions')
+        .insert([{ user_id: userId, duration, type }])
+        .select()
+        .single();
 
-            return { success: true, id: data.id };
-        } catch (error) {
-            console.error('Error saving session:', error);
-            return { success: false };
-        }
-    },
+      if (error) throw error;
+
+      // Update statistics
+      const { data: existingStats } = await supabase
+        .from('statistics')
+        .select('*')
+        .eq('user_id', userId)
+        .single();
+
+      if (existingStats) {
+        await supabase
+          .from('statistics')
+          .update({
+            total_sessions: existingStats.total_sessions + 1,
+            total_focus_time: existingStats.total_focus_time + duration,
+            updated_at: new Date().toISOString()
+          })
+          .eq('user_id', userId);
+      } else {
+        await supabase
+          .from('statistics')
+          .insert([{
+            user_id: userId,
+            total_sessions: 1,
+            total_focus_time: duration
+          }]);
+      }
+
+      return { success: true, id: data.id };
+    } catch (error) {
+      console.error('Error saving session:', error);
+      return { success: false };
+    }
+  },
 
   // Add activity
   async addActivity(type, title, duration) {

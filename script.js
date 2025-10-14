@@ -682,16 +682,18 @@ async function logout() {
 
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
-  // Check authentication
+  // Check authentication (either token or guest mode)
   const token = localStorage.getItem('access_token');
-  if (!token) {
+  const guestMode = localStorage.getItem('guest_mode');
+
+  if (!token && !guestMode) {
     window.location.href = 'auth.html';
     return;
   }
 
-  // Show user info
+  // Show user info (only if not in guest mode)
   const userEmail = localStorage.getItem('user_email');
-  if (userEmail) {
+  if (userEmail && !guestMode) {
     document.getElementById('userEmail').textContent = userEmail;
     document.getElementById('userInfo').style.display = 'flex';
   }
