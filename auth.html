@@ -205,9 +205,9 @@
     </div>
 
     <div class="auth-tabs">
-      <button class="auth-tab active" data-tab="signin" onclick="switchTab('signin')">Sign In</button>
-      <button class="auth-tab" data-tab="signup" onclick="switchTab('signup')">Sign Up</button>
-      <button class="auth-tab" data-tab="guest" onclick="switchTab('guest')">Continue as Guest</button>
+      <button class="auth-tab active" data-tab="signin">Sign In</button>
+      <button class="auth-tab" data-tab="signup">Sign Up</button>
+      <button class="auth-tab" data-tab="guest">Continue as Guest</button>
     </div>
 
     <div class="error-message" id="errorMessage"></div>
@@ -258,7 +258,8 @@
         <p style="color: var(--text-secondary); margin-bottom: 25px;">
           Try the Pomodoro Timer without signing up. Your data will be saved locally on this device.
         </p>
-        <button type="button" class="auth-btn" id="guestBtn" style="width: 100%;" onclick="window.location.href='index.html'; localStorage.setItem('guest_mode', 'true'); localStorage.setItem('user_id', 'guest_' + Date.now()); localStorage.setItem('user_email', 'Guest User');">
+        <button type="button" class="auth-btn" id="guestBtn" style="width: 100%;"
+          onclick="localStorage.setItem('guest_mode', 'true'); localStorage.setItem('user_id', 'guest_' + Date.now()); localStorage.setItem('user_email', 'Guest User'); window.location.href='index.html';">
           Start as Guest
         </button>
         <p style="margin-top: 15px; font-size: 0.9rem; color: var(--text-secondary);">
