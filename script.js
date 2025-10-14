@@ -657,26 +657,36 @@ async function logout() {
   try {
     const token = localStorage.getItem('access_token');
 
-    if (token) {
-      // Call logout API
-      await fetch('http://localhost:3000/api/auth/signout', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
+    // Sign out from Supabase if token exists
+    if (token && typeof supabase !== 'undefined') {
+      try {
+        await supabase.auth.signOut();
+      } catch (error) {
+        console.error('Supabase sign out error:', error);
+      }
     }
 
-    // Clear local storage
-    localStorage.clear();
+    // Clear all auth data
+    localStorage.removeItem('access_token');
+    localStorage.removeItem('refresh_token');
+    localStorage.removeItem('user_id');
+    localStorage.removeItem('user_email');
+    
+    // Set guest mode
+    localStorage.setItem('guest_mode', 'true');
+    localStorage.setItem('user_id', 'guest_' + Date.now());
+    localStorage.setItem('user_email', 'Guest User');
 
-    // Redirect to login
-    window.location.href = 'auth.html';
+    // Reload page to update UI
+    window.location.reload();
   } catch (error) {
     console.error('Logout error:', error);
-    // Clear local storage anyway
+    // Clear and reload anyway
     localStorage.clear();
-    window.location.href = 'auth.html';
+    localStorage.setItem('guest_mode', 'true');
+    localStorage.setItem('user_id', 'guest_' + Date.now());
+    localStorage.setItem('user_email', 'Guest User');
+    window.location.reload();
   }
 }
 
@@ -684,10 +694,19 @@ async function logout() {
 document.addEventListener('DOMContentLoaded', () => {
   // Check authentication
   const token = localStorage.getItem('access_token');
-  const guestMode = localStorage.getItem('guest_mode');
+  let guestMode = localStorage.getItem('guest_mode');
   const userEmail = localStorage.getItem('user_email');
 
   console.log('Auth check:', { token: !!token, guestMode: !!guestMode });
+
+  // If no auth and no guest mode, set guest mode automatically
+  if (!token && !guestMode) {
+    guestMode = 'true';
+    localStorage.setItem('guest_mode', 'true');
+    localStorage.setItem('user_id', 'guest_' + Date.now());
+    localStorage.setItem('user_email', 'Guest User');
+    console.log('✅ Auto-enabled guest mode');
+  }
 
   // Show appropriate UI based on auth status
   const authButtons = document.getElementById('authButtons');
@@ -699,7 +718,7 @@ document.addEventListener('DOMContentLoaded', () => {
     authButtons.style.display = 'none';
     userInfo.style.display = 'flex';
   } else {
-    // User is not signed in - show sign in button
+    // User is in guest mode - show sign in button
     authButtons.style.display = 'flex';
     userInfo.style.display = 'none';
   }
