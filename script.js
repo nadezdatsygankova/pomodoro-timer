@@ -46,6 +46,19 @@ async function loadData() {
   try {
     const data = await api.getData();
 
+    // Check if data exists and has statistics
+    if (!data || !data.statistics) {
+      console.warn('No data or statistics found, using defaults');
+      totalSessions = 0;
+      totalFocusTime = 0;
+      tasks = [];
+      activityHistory = [];
+      updateTimerDisplay();
+      updateTaskStats();
+      renderActivities();
+      return;
+    }
+
     totalSessions = data.statistics.totalSessions || 0;
     totalFocusTime = data.statistics.totalFocusTime || 0;
 
@@ -671,7 +684,7 @@ async function logout() {
     localStorage.removeItem('refresh_token');
     localStorage.removeItem('user_id');
     localStorage.removeItem('user_email');
-    
+
     // Set guest mode
     localStorage.setItem('guest_mode', 'true');
     localStorage.setItem('user_id', 'guest_' + Date.now());

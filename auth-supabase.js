@@ -11,20 +11,8 @@ if (typeof createClient !== 'undefined') {
   console.error('❌ Supabase library not loaded. Please ensure @supabase/supabase-js is loaded before this script.');
 }
 
-// DOM Elements
-const signinTab = document.querySelector('[data-tab="signin"]');
-const signupTab = document.querySelector('[data-tab="signup"]');
-const signinForm = document.getElementById('signinForm');
-const signupForm = document.getElementById('signupForm');
-const errorMessage = document.getElementById('errorMessage');
-const successMessage = document.getElementById('successMessage');
-const signinBtn = document.getElementById('signinBtn');
-const signupBtn = document.getElementById('signupBtn');
-
-// Tab switching
-signinTab.addEventListener('click', () => switchTab('signin'));
-signupTab.addEventListener('click', () => switchTab('signup'));
-document.querySelector('[data-tab="guest"]').addEventListener('click', () => switchTab('guest'));
+// DOM Elements - will be set when DOM is ready
+let signinTab, signupTab, signinForm, signupForm, errorMessage, successMessage, signinBtn, signupBtn;
 
 function switchTab(tab) {
   // Update tabs
@@ -88,8 +76,25 @@ function clearAuthData() {
   localStorage.removeItem('guest_mode');
 }
 
-// Sign in
-signinForm.addEventListener('submit', async (e) => {
+// Initialize when DOM is ready
+window.addEventListener('DOMContentLoaded', () => {
+  // Get DOM elements
+  signinTab = document.querySelector('[data-tab="signin"]');
+  signupTab = document.querySelector('[data-tab="signup"]');
+  signinForm = document.getElementById('signinForm');
+  signupForm = document.getElementById('signupForm');
+  errorMessage = document.getElementById('errorMessage');
+  successMessage = document.getElementById('successMessage');
+  signinBtn = document.getElementById('signinBtn');
+  signupBtn = document.getElementById('signupBtn');
+
+  // Tab switching
+  signinTab.addEventListener('click', () => switchTab('signin'));
+  signupTab.addEventListener('click', () => switchTab('signup'));
+  document.querySelector('[data-tab="guest"]').addEventListener('click', () => switchTab('guest'));
+
+  // Sign in
+  signinForm.addEventListener('submit', async (e) => {
   e.preventDefault();
   hideMessage();
 
@@ -192,21 +197,20 @@ document.getElementById('forgotPasswordLink').addEventListener('click', (e) => {
   showError('Password reset feature coming soon!');
 });
 
-// Guest mode
-document.getElementById('guestBtn').addEventListener('click', () => {
-  // Set guest mode flag
-  localStorage.setItem('guest_mode', 'true');
-  localStorage.setItem('user_id', 'guest_' + Date.now());
-  localStorage.setItem('user_email', 'Guest User');
-  localStorage.removeItem('access_token');
-  localStorage.removeItem('refresh_token');
+  // Guest mode
+  document.getElementById('guestBtn').addEventListener('click', () => {
+    // Set guest mode flag
+    localStorage.setItem('guest_mode', 'true');
+    localStorage.setItem('user_id', 'guest_' + Date.now());
+    localStorage.setItem('user_email', 'Guest User');
+    localStorage.removeItem('access_token');
+    localStorage.removeItem('refresh_token');
 
-  // Redirect to main app
-  window.location.href = 'index.html';
-});
+    // Redirect to main app
+    window.location.href = 'index.html';
+  });
 
-// Check if already authenticated when page loads
-window.addEventListener('DOMContentLoaded', () => {
+  // Check if already authenticated when page loads
   // Add a delay to prevent flashing/blinking during page load
   setTimeout(() => {
     const token = localStorage.getItem('access_token');
@@ -217,5 +221,5 @@ window.addEventListener('DOMContentLoaded', () => {
       window.location.href = 'index.html';
     }
   }, 300);
-});
+}); // End of DOMContentLoaded
 
