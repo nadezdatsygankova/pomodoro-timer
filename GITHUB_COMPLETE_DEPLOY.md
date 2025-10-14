@@ -53,6 +53,7 @@ git push -u origin main
 7. **Deploy!** Railway will auto-deploy
 
 8. **Get Railway Token**:
+
    - Go to Railway dashboard
    - Click your profile → Settings → Tokens
    - Create new token
@@ -82,6 +83,7 @@ git push -u origin main
 ### Step 3: Update Frontend with Backend URL
 
 Once Railway/Render deploys, you'll get a backend URL like:
+
 ```
 https://pomodoro-timer-production.up.railway.app
 ```
@@ -119,11 +121,13 @@ GitHub Pages will automatically deploy your frontend!
 ### Step 5: Test Your Deployment
 
 Your app will be live at:
+
 ```
 https://yourusername.github.io/pomodoro-timer/
 ```
 
 Test it:
+
 1. Visit the URL
 2. Sign up for an account
 3. Create a Pomodoro session
@@ -224,6 +228,7 @@ git push
 ### GitHub Secrets:
 
 Add these to your repository secrets:
+
 - `RAILWAY_TOKEN` - Railway deployment token
 - `SUPABASE_URL` - Your Supabase URL
 - `SUPABASE_ANON_KEY` - Your Supabase anon key
@@ -234,12 +239,11 @@ Update your backend to allow GitHub Pages:
 
 ```javascript
 // In server-auth.js
-app.use(cors({
-    origin: [
-        'https://yourusername.github.io',
-        'http://localhost:3000'
-    ]
-}));
+app.use(
+  cors({
+    origin: ['https://yourusername.github.io', 'http://localhost:3000'],
+  }),
+);
 ```
 
 ---
@@ -260,6 +264,7 @@ app.use(cors({
 ## 🎯 Benefits
 
 ### GitHub Pages (Frontend):
+
 - ✅ **Free** - Completely free
 - ✅ **Fast** - CDN delivery
 - ✅ **Auto-Deploy** - Push to deploy
@@ -267,12 +272,14 @@ app.use(cors({
 - ✅ **Custom Domain** - Use your own domain
 
 ### Railway/Render (Backend):
+
 - ✅ **Full Backend** - Node.js support
 - ✅ **Auto-Deploy** - Push to deploy
 - ✅ **Free Tier** - Free hosting
 - ✅ **Database** - Supabase connection
 
 ### GitHub Actions:
+
 - ✅ **Automation** - Automatic deployments
 - ✅ **CI/CD** - Continuous integration
 - ✅ **Free** - 2000 minutes/month free
@@ -293,16 +300,19 @@ app.use(cors({
 ## 🆘 Troubleshooting
 
 ### "GitHub Pages not working"
+
 - Check Pages is enabled in Settings
 - Verify branch is `main`
 - Wait a few minutes for deployment
 
 ### "Backend not deploying"
+
 - Check Railway/Render dashboard
 - Verify environment variables
 - Check GitHub Actions logs
 
 ### "API calls failing"
+
 - Verify backend URL in `api.js`
 - Check backend is running
 - Verify CORS settings
@@ -333,4 +343,3 @@ After deployment:
 **Deploy everything through GitHub! 🚀**
 
 **Your app will be live and working! 🎉🍅✨**
-

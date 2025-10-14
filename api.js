@@ -1,254 +1,355 @@
-// API Client for Pomodoro Timer
-// Automatically detect API URL based on environment
-const API_BASE_URL = (() => {
-    // Check if we're in production (GitHub Pages)
-    if (window.location.hostname.includes('github.io') || 
-        window.location.hostname.includes('netlify.app') ||
-        window.location.protocol === 'https:') {
-        // Use your production backend URL
-        // TODO: Replace with your actual Railway/Render URL
-        return 'https://your-backend.railway.app/api';
-    }
-    // Development
-    return 'http://localhost:3000/api';
-})();
+// Supabase API Client - Direct Backend-as-a-Service
+const SUPABASE_URL = 'https://hxhklmfayeqgzrogcfql.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh4aGtsbWZheWVxZ3pyb2djZnFsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA0NTI0ODMsImV4cCI6MjA3NjAyODQ4M30.AL-mYcyG07cWZWg9Q7XfWaBsySnlfUCGp7uKBjKy0h8';
+
+// Initialize Supabase client
+const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // Get auth token
 function getAuthToken() {
-  return localStorage.getItem('access_token');
+    return localStorage.getItem('access_token');
 }
 
 // Check if user is authenticated
 function isAuthenticated() {
-  return !!getAuthToken();
+    return !!getAuthToken();
 }
 
 // Get user ID from auth
 function getUserId() {
-  return localStorage.getItem('user_id');
+    return localStorage.getItem('user_id');
 }
 
 // Redirect to login if not authenticated
 function requireAuth() {
-  if (!isAuthenticated()) {
-    window.location.href = 'auth.html';
-    return false;
-  }
-  return true;
+    if (!isAuthenticated()) {
+        window.location.href = 'auth.html';
+        return false;
+    }
+    return true;
 }
 
 // Clear auth data
 function clearAuthData() {
-  localStorage.removeItem('access_token');
-  localStorage.removeItem('refresh_token');
-  localStorage.removeItem('user_id');
-  localStorage.removeItem('user_email');
-}
-
-// Get headers with auth token
-function getHeaders() {
-  const token = getAuthToken();
-  return {
-    'Content-Type': 'application/json',
-    'Authorization': `Bearer ${token}`
-  };
+    localStorage.removeItem('access_token');
+    localStorage.removeItem('refresh_token');
+    localStorage.removeItem('user_id');
+    localStorage.removeItem('user_email');
 }
 
 // API Helper Functions
 const api = {
-  // Get all data
-  async getData() {
-    try {
-      const token = getAuthToken();
-      if (!token) {
-        window.location.href = 'auth.html';
-        return;
-      }
+    // Get all data
+    async getData() {
+        try {
+            const token = getAuthToken();
+            if (!token) {
+                window.location.href = 'auth.html';
+                return;
+            }
+            
+            // Set auth header
+            supabase.auth.setSession({ access_token: token, refresh_token: localStorage.getItem('refresh_token') });
+            
+            const userId = getUserId();
+            
+            // Get tasks
+            const { data: tasks, error: tasksError } = await supabase
+                .from('tasks')
+                .select('*')
+                .eq('user_id', userId)
+                .order('created_at', { ascending: false });
 
-      const response = await fetch(`${API_BASE_URL}/data`, {
-        headers: {
-          'Authorization': `Bearer ${token}`
+            if (tasksError) throw tasksError;
+
+            // Get activities
+            const { data: activities, error: activitiesError } = await supabase
+                .from('activities')
+                .select('*')
+                .eq('user_id', userId)
+                .order('created_at', { ascending: false })
+                .limit(100);
+
+            if (activitiesError) throw activitiesError;
+
+            // Get statistics
+            const { data: stats, error: statsError } = await supabase
+                .from('statistics')
+                .select('*')
+                .eq('user_id', userId)
+                .single();
+
+            const data = {
+                tasks: (tasks || []).map(task => ({
+                    id: task.id,
+                    text: task.text,
+                    completed: task.completed,
+                    timeSpent: task.time_spent
+                })),
+                activities: (activities || []).map(activity => ({
+                    type: activity.type,
+                    title: activity.title,
+                    duration: activity.duration,
+                    timestamp: activity.created_at
+                })),
+                statistics: {
+                    totalSessions: stats?.total_sessions || 0,
+                    totalFocusTime: stats?.total_focus_time || 0
+                }
+            };
+
+            return data;
+        } catch (error) {
+            console.error('Error fetching data:', error);
+            return this.getLocalData();
         }
-      });
+    },
 
-      if (response.status === 401) {
-        // Token expired or invalid
-        clearAuthData();
-        window.location.href = 'auth.html';
-        return;
-      }
+    // Save session
+    async saveSession(duration, type) {
+        try {
+            const userId = getUserId();
+            
+            const { data, error } = await supabase
+                .from('sessions')
+                .insert([{ user_id: userId, duration, type }])
+                .select()
+                .single();
 
-      if (!response.ok) throw new Error('Failed to fetch data');
-      return await response.json();
-    } catch (error) {
-      console.error('Error fetching data:', error);
-      // Fallback to localStorage if server is not available
-      return this.getLocalData();
+            if (error) throw error;
+
+            // Update statistics
+            const { data: existingStats } = await supabase
+                .from('statistics')
+                .select('*')
+                .eq('user_id', userId)
+                .single();
+
+            if (existingStats) {
+                await supabase
+                    .from('statistics')
+                    .update({
+                        total_sessions: existingStats.total_sessions + 1,
+                        total_focus_time: existingStats.total_focus_time + duration,
+                        updated_at: new Date().toISOString()
+                    })
+                    .eq('user_id', userId);
+            } else {
+                await supabase
+                    .from('statistics')
+                    .insert([{
+                        user_id: userId,
+                        total_sessions: 1,
+                        total_focus_time: duration
+                    }]);
+            }
+
+            return { success: true, id: data.id };
+        } catch (error) {
+            console.error('Error saving session:', error);
+            return { success: false };
+        }
+    },
+
+    // Add activity
+    async addActivity(type, title, duration) {
+        try {
+            const userId = getUserId();
+            
+            const { data, error } = await supabase
+                .from('activities')
+                .insert([{ user_id: userId, type, title, duration }])
+                .select()
+                .single();
+
+            if (error) throw error;
+            return { success: true, id: data.id };
+        } catch (error) {
+            console.error('Error adding activity:', error);
+            return { success: false };
+        }
+    },
+
+    // Add task
+    async addTask(text) {
+        try {
+            const userId = getUserId();
+            
+            const { data, error } = await supabase
+                .from('tasks')
+                .insert([{ user_id: userId, text }])
+                .select()
+                .single();
+
+            if (error) throw error;
+            return { success: true, id: data.id };
+        } catch (error) {
+            console.error('Error adding task:', error);
+            return { success: false };
+        }
+    },
+
+    // Update task
+    async updateTask(id, updates) {
+        try {
+            const userId = getUserId();
+            
+            const dbUpdates = {};
+            if (updates.text !== undefined) dbUpdates.text = updates.text;
+            if (updates.completed !== undefined) dbUpdates.completed = updates.completed;
+            if (updates.timeSpent !== undefined) dbUpdates.time_spent = updates.timeSpent;
+            dbUpdates.updated_at = new Date().toISOString();
+
+            const { error } = await supabase
+                .from('tasks')
+                .update(dbUpdates)
+                .eq('id', id)
+                .eq('user_id', userId);
+
+            if (error) throw error;
+            return { success: true };
+        } catch (error) {
+            console.error('Error updating task:', error);
+            return { success: false };
+        }
+    },
+
+    // Delete task
+    async deleteTask(id) {
+        try {
+            const userId = getUserId();
+            
+            const { error } = await supabase
+                .from('tasks')
+                .delete()
+                .eq('id', id)
+                .eq('user_id', userId);
+
+            if (error) throw error;
+            return { success: true };
+        } catch (error) {
+            console.error('Error deleting task:', error);
+            return { success: false };
+        }
+    },
+
+    // Clear activities
+    async clearActivities() {
+        try {
+            const userId = getUserId();
+            
+            const { error } = await supabase
+                .from('activities')
+                .delete()
+                .eq('user_id', userId);
+
+            if (error) throw error;
+            return { success: true };
+        } catch (error) {
+            console.error('Error clearing activities:', error);
+            return { success: false };
+        }
+    },
+
+    // Export data
+    async exportData() {
+        try {
+            const userId = getUserId();
+
+            const { data: tasks } = await supabase
+                .from('tasks')
+                .select('*')
+                .eq('user_id', userId);
+
+            const { data: activities } = await supabase
+                .from('activities')
+                .select('*')
+                .eq('user_id', userId);
+
+            const { data: sessions } = await supabase
+                .from('sessions')
+                .select('*')
+                .eq('user_id', userId);
+
+            const { data: stats } = await supabase
+                .from('statistics')
+                .select('*')
+                .eq('user_id', userId)
+                .single();
+
+            const exportData = {
+                exportDate: new Date().toISOString(),
+                userId: userId,
+                summary: {
+                    totalSessions: stats?.total_sessions || 0,
+                    totalFocusTime: stats?.total_focus_time || 0,
+                    totalTasks: tasks?.length || 0,
+                    completedTasks: tasks?.filter(t => t.completed).length || 0
+                },
+                tasks: tasks || [],
+                activities: activities || [],
+                sessions: sessions || [],
+                statistics: stats || {}
+            };
+
+            // Download as JSON file
+            const dataStr = JSON.stringify(exportData, null, 2);
+            const dataBlob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(dataBlob);
+            
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `pomodoro-data-${new Date().toISOString().split('T')[0]}.json`;
+            link.click();
+            
+            URL.revokeObjectURL(url);
+            return { success: true };
+        } catch (error) {
+            console.error('Error exporting data:', error);
+            return { success: false };
+        }
+    },
+
+    // Check server health
+    async checkHealth() {
+        try {
+            const { data, error } = await supabase.from('tasks').select('count').limit(1);
+            return !error;
+        } catch (error) {
+            return false;
+        }
+    },
+
+    // Fallback: Get data from localStorage
+    getLocalData() {
+        const savedData = localStorage.getItem('pomodoroData');
+        if (savedData) {
+            return JSON.parse(savedData);
+        }
+        return {
+            tasks: [],
+            activities: [],
+            statistics: {
+                totalSessions: 0,
+                totalFocusTime: 0
+            }
+        };
+    },
+
+    // Fallback: Save to localStorage
+    saveLocalData(data) {
+        localStorage.setItem('pomodoroData', JSON.stringify(data));
     }
-  },
-
-  // Save session
-  async saveSession(duration, type) {
-    try {
-      const response = await fetch(`${API_BASE_URL}/sessions`, {
-        method: 'POST',
-        headers: getHeaders(),
-        body: JSON.stringify({ duration, type })
-      });
-      if (!response.ok) throw new Error('Failed to save session');
-      return await response.json();
-    } catch (error) {
-      console.error('Error saving session:', error);
-      return { success: false };
-    }
-  },
-
-  // Add activity
-  async addActivity(type, title, duration) {
-    try {
-      const response = await fetch(`${API_BASE_URL}/activities`, {
-        method: 'POST',
-        headers: getHeaders(),
-        body: JSON.stringify({ type, title, duration })
-      });
-      if (!response.ok) throw new Error('Failed to add activity');
-      return await response.json();
-    } catch (error) {
-      console.error('Error adding activity:', error);
-      return { success: false };
-    }
-  },
-
-  // Add task
-  async addTask(text) {
-    try {
-      const response = await fetch(`${API_BASE_URL}/tasks`, {
-        method: 'POST',
-        headers: getHeaders(),
-        body: JSON.stringify({ text })
-      });
-      if (!response.ok) throw new Error('Failed to add task');
-      const result = await response.json();
-      return { success: true, id: result.id };
-    } catch (error) {
-      console.error('Error adding task:', error);
-      return { success: false };
-    }
-  },
-
-  // Update task
-  async updateTask(id, updates) {
-    try {
-      const response = await fetch(`${API_BASE_URL}/tasks/${id}`, {
-        method: 'PUT',
-        headers: getHeaders(),
-        body: JSON.stringify(updates)
-      });
-      if (!response.ok) throw new Error('Failed to update task');
-      return await response.json();
-    } catch (error) {
-      console.error('Error updating task:', error);
-      return { success: false };
-    }
-  },
-
-  // Delete task
-  async deleteTask(id) {
-    try {
-      const response = await fetch(`${API_BASE_URL}/tasks/${id}`, {
-        method: 'DELETE',
-        headers: getHeaders()
-      });
-      if (!response.ok) throw new Error('Failed to delete task');
-      return await response.json();
-    } catch (error) {
-      console.error('Error deleting task:', error);
-      return { success: false };
-    }
-  },
-
-  // Clear activities
-  async clearActivities() {
-    try {
-      const response = await fetch(`${API_BASE_URL}/activities`, {
-        method: 'DELETE',
-        headers: getHeaders()
-      });
-      if (!response.ok) throw new Error('Failed to clear activities');
-      return await response.json();
-    } catch (error) {
-      console.error('Error clearing activities:', error);
-      return { success: false };
-    }
-  },
-
-  // Export data
-  async exportData() {
-    try {
-      const response = await fetch(`${API_BASE_URL}/export`, {
-        headers: getHeaders()
-      });
-      if (!response.ok) throw new Error('Failed to export data');
-      const data = await response.json();
-
-      // Download as JSON file
-      const dataStr = JSON.stringify(data, null, 2);
-      const dataBlob = new Blob([dataStr], { type: 'application/json' });
-      const url = URL.createObjectURL(dataBlob);
-
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `pomodoro-data-${new Date().toISOString().split('T')[0]}.json`;
-      link.click();
-
-      URL.revokeObjectURL(url);
-      return { success: true };
-    } catch (error) {
-      console.error('Error exporting data:', error);
-      return { success: false };
-    }
-  },
-
-  // Check server health
-  async checkHealth() {
-    try {
-      const response = await fetch(`${API_BASE_URL}/health`);
-      return response.ok;
-    } catch (error) {
-      return false;
-    }
-  },
-
-  // Fallback: Get data from localStorage
-  getLocalData() {
-    const savedData = localStorage.getItem('pomodoroData');
-    if (savedData) {
-      return JSON.parse(savedData);
-    }
-    return {
-      tasks: [],
-      activities: [],
-      statistics: {
-        totalSessions: 0,
-        totalFocusTime: 0
-      }
-    };
-  },
-
-  // Fallback: Save to localStorage
-  saveLocalData(data) {
-    localStorage.setItem('pomodoroData', JSON.stringify(data));
-  }
 };
 
 // Check if server is available
 let serverAvailable = false;
 api.checkHealth().then(available => {
-  serverAvailable = available;
-  if (available) {
-    console.log('✅ Connected to database server');
-  } else {
-    console.log('⚠️ Server not available, using localStorage');
-  }
+    serverAvailable = available;
+    if (available) {
+        console.log('✅ Connected to Supabase');
+    } else {
+        console.log('⚠️ Supabase not available, using localStorage');
+    }
 });
 
