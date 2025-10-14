@@ -1,0 +1,32 @@
+{
+  "name": "pomodoro-timer",
+  "version": "1.0.0",
+  "description": "Pomodoro Timer with database support",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server-auth.js",
+    "start:sqlite": "node server.js",
+    "start:supabase": "node server-supabase.js",
+    "dev": "nodemon server-auth.js",
+    "deploy:railway": "railway up",
+    "deploy:render": "git push origin main"
+  },
+  "keywords": [
+    "pomodoro",
+    "timer",
+    "productivity"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "@supabase/supabase-js": "^2.38.4",
+    "body-parser": "^1.20.2",
+    "uuid": "^9.0.1",
+    "dotenv": "^16.3.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  }
+}
