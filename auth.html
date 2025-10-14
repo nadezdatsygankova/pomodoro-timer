@@ -269,7 +269,32 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="auth-supabase.js"></script>
+  <script>
+    // Wait for Supabase to load before loading auth-supabase.js
+    if (typeof createClient === 'undefined') {
+      // If createClient is not defined, wait for it
+      let checkCount = 0;
+      const checkSupabase = setInterval(() => {
+        checkCount++;
+        if (typeof createClient !== 'undefined') {
+          clearInterval(checkSupabase);
+          loadAuthScript();
+        } else if (checkCount > 50) {
+          clearInterval(checkSupabase);
+          console.error('Supabase library failed to load');
+          loadAuthScript(); // Load anyway
+        }
+      }, 100);
+    } else {
+      loadAuthScript();
+    }
+    
+    function loadAuthScript() {
+      const script = document.createElement('script');
+      script.src = 'auth-supabase.js';
+      document.body.appendChild(script);
+    }
+  </script>
 </body>
 
 </html>
