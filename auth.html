@@ -268,41 +268,47 @@
     </div>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" onerror="handleSupabaseError()"></script>
   <script>
-    // Handle Supabase loading
-    function handleSupabaseError() {
-      console.warn('⚠️ Supabase CDN failed to load. Using localStorage fallback.');
-      // Create a mock createClient function
-      window.createClient = function() {
-        return {
-          auth: {
-            signInWithPassword: async () => ({ data: null, error: { message: 'Supabase not available' } }),
-            signUp: async () => ({ data: null, error: { message: 'Supabase not available' } }),
-            signOut: async () => ({ error: null })
-          }
-        };
-      };
-      loadAuthScript();
-    }
+    // Load Supabase from multiple CDNs with fallback
+    let supabaseLoaded = false;
     
-    // Wait for Supabase to load before loading auth-supabase.js
-    if (typeof createClient === 'undefined') {
-      // If createClient is not defined, wait for it
-      let checkCount = 0;
-      const checkSupabase = setInterval(() => {
-        checkCount++;
-        if (typeof createClient !== 'undefined') {
-          clearInterval(checkSupabase);
+    function tryLoadSupabase() {
+      // Try unpkg CDN first
+      const script1 = document.createElement('script');
+      script1.src = 'https://unpkg.com/@supabase/supabase-js@2';
+      script1.onload = () => {
+        console.log('✅ Supabase loaded from unpkg');
+        supabaseLoaded = true;
+        loadAuthScript();
+      };
+      script1.onerror = () => {
+        console.warn('⚠️ unpkg CDN failed, trying jsdelivr...');
+        // Try jsdelivr CDN
+        const script2 = document.createElement('script');
+        script2.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';
+        script2.onload = () => {
+          console.log('✅ Supabase loaded from jsdelivr');
+          supabaseLoaded = true;
           loadAuthScript();
-        } else if (checkCount > 50) {
-          clearInterval(checkSupabase);
-          console.warn('⚠️ Supabase library failed to load. Using localStorage fallback.');
-          loadAuthScript(); // Load anyway
-        }
-      }, 100);
-    } else {
-      loadAuthScript();
+        };
+        script2.onerror = () => {
+          console.error('❌ All CDNs failed. Using localStorage fallback.');
+          // Create a mock createClient function
+          window.createClient = function() {
+            return {
+              auth: {
+                signInWithPassword: async () => ({ data: null, error: { message: 'Supabase not available' } }),
+                signUp: async () => ({ data: null, error: { message: 'Supabase not available' } }),
+                signOut: async () => ({ error: null })
+              }
+            };
+          };
+          supabaseLoaded = true;
+          loadAuthScript();
+        };
+        document.head.appendChild(script2);
+      };
+      document.head.appendChild(script1);
     }
     
     function loadAuthScript() {
@@ -310,6 +316,9 @@
       script.src = 'auth-supabase.js';
       document.body.appendChild(script);
     }
+    
+    // Start loading Supabase
+    tryLoadSupabase();
   </script>
 </body>
 
