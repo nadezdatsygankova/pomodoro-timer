@@ -271,7 +271,7 @@
   <script>
     // Load Supabase from multiple CDNs with fallback
     let supabaseLoaded = false;
-    
+
     function tryLoadSupabase() {
       // Try unpkg CDN first
       const script1 = document.createElement('script');
@@ -294,7 +294,7 @@
         script2.onerror = () => {
           console.error('❌ All CDNs failed. Using localStorage fallback.');
           // Create a mock createClient function
-          window.createClient = function() {
+          window.createClient = function () {
             return {
               auth: {
                 signInWithPassword: async () => ({ data: null, error: { message: 'Supabase not available' } }),
@@ -310,13 +310,13 @@
       };
       document.head.appendChild(script1);
     }
-    
+
     function loadAuthScript() {
       const script = document.createElement('script');
       script.src = 'auth-supabase.js';
       document.body.appendChild(script);
     }
-    
+
     // Start loading Supabase
     tryLoadSupabase();
   </script>

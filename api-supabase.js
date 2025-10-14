@@ -339,6 +339,37 @@ const api = {
   // Export data
   async exportData() {
     try {
+      // Guest mode - export from localStorage
+      if (isGuestMode() || !supabase) {
+        const data = this.getLocalData();
+        const exportData = {
+          exportDate: new Date().toISOString(),
+          userId: getUserId(),
+          summary: {
+            totalSessions: data.statistics?.totalSessions || 0,
+            totalFocusTime: data.statistics?.totalFocusTime || 0,
+            totalTasks: data.tasks?.length || 0,
+            completedTasks: data.tasks?.filter(t => t.completed).length || 0
+          },
+          tasks: data.tasks || [],
+          activities: data.activities || [],
+          statistics: data.statistics || {}
+        };
+
+        // Download as JSON file
+        const dataStr = JSON.stringify(exportData, null, 2);
+        const dataBlob = new Blob([dataStr], { type: 'application/json' });
+        const url = URL.createObjectURL(dataBlob);
+
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `pomodoro-data-${new Date().toISOString().split('T')[0]}.json`;
+        link.click();
+
+        URL.revokeObjectURL(url);
+        return { success: true };
+      }
+
       const userId = getUserId();
 
       const { data: tasks } = await supabase
@@ -398,6 +429,9 @@ const api = {
   // Check server health
   async checkHealth() {
     try {
+      if (!supabase) {
+        return false;
+      }
       const { data, error } = await supabase.from('tasks').select('count').limit(1);
       return !error;
     } catch (error) {

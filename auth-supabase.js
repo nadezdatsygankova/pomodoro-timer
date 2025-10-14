@@ -105,13 +105,13 @@ window.addEventListener('DOMContentLoaded', () => {
 
   // Sign in
   signinForm.addEventListener('submit', async (e) => {
-  e.preventDefault();
-  hideMessage();
+    e.preventDefault();
+    hideMessage();
 
-  if (!supabase) {
-    showError('⚠️ Sign in is currently unavailable. Please use "Continue as Guest" to use the app.');
-    return;
-  }
+    if (!supabase) {
+      showError('⚠️ Sign in is currently unavailable. Please use "Continue as Guest" to use the app.');
+      return;
+    }
 
     const email = document.getElementById('signinEmail').value;
     const password = document.getElementById('signinPassword').value;
@@ -148,13 +148,13 @@ window.addEventListener('DOMContentLoaded', () => {
 
   // Sign up
   signupForm.addEventListener('submit', async (e) => {
-  e.preventDefault();
-  hideMessage();
+    e.preventDefault();
+    hideMessage();
 
-  if (!supabase) {
-    showError('⚠️ Sign up is currently unavailable. Please use "Continue as Guest" to use the app.');
-    return;
-  }
+    if (!supabase) {
+      showError('⚠️ Sign up is currently unavailable. Please use "Continue as Guest" to use the app.');
+      return;
+    }
 
     const name = document.getElementById('signupName').value;
     const email = document.getElementById('signupEmail').value;

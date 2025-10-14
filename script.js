@@ -72,7 +72,7 @@ async function loadData() {
 
     // Set task counter
     if (tasks.length > 0) {
-      taskIdCounter = Math.max(...tasks.map(t => t.id)) + 1;
+      taskIdCounter = Math.max(...tasks.map(t => parseInt(t.id) || 0)) + 1;
     }
 
     // Convert activities from database format
@@ -91,13 +91,34 @@ async function loadData() {
     // Fallback to localStorage
     const savedData = localStorage.getItem('pomodoroData');
     if (savedData) {
-      const data = JSON.parse(savedData);
-      totalSessions = data.totalSessions || 0;
-      totalFocusTime = data.totalFocusTime || 0;
-      tasks = data.tasks || [];
-      taskIdCounter = data.taskIdCounter || 0;
-      activityHistory = data.activityHistory || [];
+      try {
+        const data = JSON.parse(savedData);
+        totalSessions = data.totalSessions || 0;
+        totalFocusTime = data.totalFocusTime || 0;
+        tasks = data.tasks || [];
+        taskIdCounter = data.taskIdCounter || 0;
+        activityHistory = data.activityHistory || [];
 
+        updateSessionDisplay();
+        renderTasks();
+        renderActivities();
+      } catch (parseError) {
+        console.error('Error parsing localStorage data:', parseError);
+        // Use defaults
+        totalSessions = 0;
+        totalFocusTime = 0;
+        tasks = [];
+        activityHistory = [];
+        updateSessionDisplay();
+        renderTasks();
+        renderActivities();
+      }
+    } else {
+      // No saved data, use defaults
+      totalSessions = 0;
+      totalFocusTime = 0;
+      tasks = [];
+      activityHistory = [];
       updateSessionDisplay();
       renderTasks();
       renderActivities();
