@@ -3,7 +3,13 @@ const SUPABASE_URL = 'https://hxhklmfayeqgzrogcfql.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh4aGtsbWZheWVxZ3pyb2djZnFsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA0NTI0ODMsImV4cCI6MjA3NjAyODQ4M30.AL-mYcyG07cWZWg9Q7XfWaBsySnlfUCGp7uKBjKy0h8';
 
 // Initialize Supabase client
-const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+let supabase;
+if (typeof createClient !== 'undefined') {
+  supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  console.log('✅ Supabase client initialized');
+} else {
+  console.error('❌ Supabase library not loaded. Please ensure @supabase/supabase-js is loaded before this script.');
+}
 
 // DOM Elements
 const signinTab = document.querySelector('[data-tab="signin"]');
@@ -87,6 +93,11 @@ signinForm.addEventListener('submit', async (e) => {
   e.preventDefault();
   hideMessage();
 
+  if (!supabase) {
+    showError('Supabase library not loaded. Please refresh the page.');
+    return;
+  }
+
   const email = document.getElementById('signinEmail').value;
   const password = document.getElementById('signinPassword').value;
 
@@ -124,6 +135,11 @@ signinForm.addEventListener('submit', async (e) => {
 signupForm.addEventListener('submit', async (e) => {
   e.preventDefault();
   hideMessage();
+
+  if (!supabase) {
+    showError('Supabase library not loaded. Please refresh the page.');
+    return;
+  }
 
   const name = document.getElementById('signupName').value;
   const email = document.getElementById('signupEmail').value;
