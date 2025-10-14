@@ -177,6 +177,20 @@ const api = {
   // Add activity
   async addActivity(type, title, duration) {
     try {
+      // Guest mode - use localStorage
+      if (isGuestMode()) {
+        const data = this.getLocalData();
+        const newActivity = {
+          type: type,
+          title: title,
+          duration: duration,
+          timestamp: new Date().toISOString()
+        };
+        data.activities.push(newActivity);
+        this.saveLocalData(data);
+        return { success: true, id: Date.now().toString() };
+      }
+
       const userId = getUserId();
 
       const { data, error } = await supabase
@@ -196,6 +210,20 @@ const api = {
   // Add task
   async addTask(text) {
     try {
+      // Guest mode - use localStorage
+      if (isGuestMode()) {
+        const data = this.getLocalData();
+        const newTask = {
+          id: Date.now().toString(),
+          text: text,
+          completed: false,
+          timeSpent: 0
+        };
+        data.tasks.push(newTask);
+        this.saveLocalData(data);
+        return { success: true, id: newTask.id };
+      }
+
       const userId = getUserId();
 
       const { data, error } = await supabase
@@ -215,6 +243,19 @@ const api = {
   // Update task
   async updateTask(id, updates) {
     try {
+      // Guest mode - use localStorage
+      if (isGuestMode()) {
+        const data = this.getLocalData();
+        const taskIndex = data.tasks.findIndex(t => t.id === id);
+        if (taskIndex !== -1) {
+          if (updates.text !== undefined) data.tasks[taskIndex].text = updates.text;
+          if (updates.completed !== undefined) data.tasks[taskIndex].completed = updates.completed;
+          if (updates.timeSpent !== undefined) data.tasks[taskIndex].timeSpent = updates.timeSpent;
+          this.saveLocalData(data);
+        }
+        return { success: true };
+      }
+
       const userId = getUserId();
 
       const dbUpdates = {};
@@ -240,6 +281,14 @@ const api = {
   // Delete task
   async deleteTask(id) {
     try {
+      // Guest mode - use localStorage
+      if (isGuestMode()) {
+        const data = this.getLocalData();
+        data.tasks = data.tasks.filter(t => t.id !== id);
+        this.saveLocalData(data);
+        return { success: true };
+      }
+
       const userId = getUserId();
 
       const { error } = await supabase
@@ -259,6 +308,14 @@ const api = {
   // Clear activities
   async clearActivities() {
     try {
+      // Guest mode - use localStorage
+      if (isGuestMode()) {
+        const data = this.getLocalData();
+        data.activities = [];
+        this.saveLocalData(data);
+        return { success: true };
+      }
+
       const userId = getUserId();
 
       const { error } = await supabase
