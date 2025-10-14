@@ -268,8 +268,24 @@
     </div>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" onerror="handleSupabaseError()"></script>
   <script>
+    // Handle Supabase loading
+    function handleSupabaseError() {
+      console.warn('⚠️ Supabase CDN failed to load. Using localStorage fallback.');
+      // Create a mock createClient function
+      window.createClient = function() {
+        return {
+          auth: {
+            signInWithPassword: async () => ({ data: null, error: { message: 'Supabase not available' } }),
+            signUp: async () => ({ data: null, error: { message: 'Supabase not available' } }),
+            signOut: async () => ({ error: null })
+          }
+        };
+      };
+      loadAuthScript();
+    }
+    
     // Wait for Supabase to load before loading auth-supabase.js
     if (typeof createClient === 'undefined') {
       // If createClient is not defined, wait for it
@@ -281,14 +297,14 @@
           loadAuthScript();
         } else if (checkCount > 50) {
           clearInterval(checkSupabase);
-          console.error('Supabase library failed to load');
+          console.warn('⚠️ Supabase library failed to load. Using localStorage fallback.');
           loadAuthScript(); // Load anyway
         }
       }, 100);
     } else {
       loadAuthScript();
     }
-
+    
     function loadAuthScript() {
       const script = document.createElement('script');
       script.src = 'auth-supabase.js';

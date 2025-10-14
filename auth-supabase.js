@@ -8,7 +8,17 @@ if (typeof createClient !== 'undefined') {
   supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
   console.log('✅ Supabase client initialized');
 } else {
-  console.error('❌ Supabase library not loaded. Please ensure @supabase/supabase-js is loaded before this script.');
+  console.warn('⚠️ Supabase library not loaded. Using localStorage fallback.');
+  // Show a message to user
+  if (typeof window !== 'undefined') {
+    setTimeout(() => {
+      const messageDiv = document.createElement('div');
+      messageDiv.style.cssText = 'position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: #fff3cd; color: #856404; padding: 15px 20px; border-radius: 8px; border: 1px solid #ffc107; z-index: 10000; max-width: 90%; text-align: center;';
+      messageDiv.innerHTML = '⚠️ Sign in unavailable. Please use <strong>Continue as Guest</strong> to use the app.';
+      document.body.appendChild(messageDiv);
+      setTimeout(() => messageDiv.remove(), 5000);
+    }, 500);
+  }
 }
 
 // DOM Elements - will be set when DOM is ready
@@ -95,13 +105,13 @@ window.addEventListener('DOMContentLoaded', () => {
 
   // Sign in
   signinForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    hideMessage();
+  e.preventDefault();
+  hideMessage();
 
-    if (!supabase) {
-      showError('Supabase library not loaded. Please refresh the page.');
-      return;
-    }
+  if (!supabase) {
+    showError('⚠️ Sign in is currently unavailable. Please use "Continue as Guest" to use the app.');
+    return;
+  }
 
     const email = document.getElementById('signinEmail').value;
     const password = document.getElementById('signinPassword').value;
@@ -138,13 +148,13 @@ window.addEventListener('DOMContentLoaded', () => {
 
   // Sign up
   signupForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    hideMessage();
+  e.preventDefault();
+  hideMessage();
 
-    if (!supabase) {
-      showError('Supabase library not loaded. Please refresh the page.');
-      return;
-    }
+  if (!supabase) {
+    showError('⚠️ Sign up is currently unavailable. Please use "Continue as Guest" to use the app.');
+    return;
+  }
 
     const name = document.getElementById('signupName').value;
     const email = document.getElementById('signupEmail').value;
