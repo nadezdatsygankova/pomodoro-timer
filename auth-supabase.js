@@ -95,107 +95,107 @@ window.addEventListener('DOMContentLoaded', () => {
 
   // Sign in
   signinForm.addEventListener('submit', async (e) => {
-  e.preventDefault();
-  hideMessage();
+    e.preventDefault();
+    hideMessage();
 
-  if (!supabase) {
-    showError('Supabase library not loaded. Please refresh the page.');
-    return;
-  }
-
-  const email = document.getElementById('signinEmail').value;
-  const password = document.getElementById('signinPassword').value;
-
-  setLoading(signinBtn, true);
-
-  try {
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password
-    });
-
-    if (error) {
-      throw new Error(error.message);
+    if (!supabase) {
+      showError('Supabase library not loaded. Please refresh the page.');
+      return;
     }
 
-    // Store auth data
-    storeAuthData(data.session);
+    const email = document.getElementById('signinEmail').value;
+    const password = document.getElementById('signinPassword').value;
 
-    showSuccess('Sign in successful! Redirecting...');
+    setLoading(signinBtn, true);
 
-    // Redirect to main app
-    setTimeout(() => {
-      window.location.href = 'index.html';
-    }, 1000);
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password
+      });
 
-  } catch (error) {
-    console.error('Sign in error:', error);
-    showError(error.message || 'Failed to sign in. Please try again.');
-  } finally {
-    setLoading(signinBtn, false);
-  }
-});
-
-// Sign up
-signupForm.addEventListener('submit', async (e) => {
-  e.preventDefault();
-  hideMessage();
-
-  if (!supabase) {
-    showError('Supabase library not loaded. Please refresh the page.');
-    return;
-  }
-
-  const name = document.getElementById('signupName').value;
-  const email = document.getElementById('signupEmail').value;
-  const password = document.getElementById('signupPassword').value;
-
-  if (password.length < 6) {
-    showError('Password must be at least 6 characters long');
-    return;
-  }
-
-  setLoading(signupBtn, true);
-
-  try {
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: {
-          name: name
-        }
+      if (error) {
+        throw new Error(error.message);
       }
-    });
 
-    if (error) {
-      throw new Error(error.message);
-    }
-
-    // Store auth data
-    if (data.session) {
+      // Store auth data
       storeAuthData(data.session);
-      showSuccess('Sign up successful! Redirecting...');
+
+      showSuccess('Sign in successful! Redirecting...');
+
+      // Redirect to main app
       setTimeout(() => {
         window.location.href = 'index.html';
       }, 1000);
-    } else {
-      showSuccess('Sign up successful! Please check your email to verify your account.');
+
+    } catch (error) {
+      console.error('Sign in error:', error);
+      showError(error.message || 'Failed to sign in. Please try again.');
+    } finally {
+      setLoading(signinBtn, false);
+    }
+  });
+
+  // Sign up
+  signupForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    hideMessage();
+
+    if (!supabase) {
+      showError('Supabase library not loaded. Please refresh the page.');
+      return;
     }
 
-  } catch (error) {
-    console.error('Sign up error:', error);
-    showError(error.message || 'Failed to sign up. Please try again.');
-  } finally {
-    setLoading(signupBtn, false);
-  }
-});
+    const name = document.getElementById('signupName').value;
+    const email = document.getElementById('signupEmail').value;
+    const password = document.getElementById('signupPassword').value;
 
-// Forgot password (placeholder)
-document.getElementById('forgotPasswordLink').addEventListener('click', (e) => {
-  e.preventDefault();
-  showError('Password reset feature coming soon!');
-});
+    if (password.length < 6) {
+      showError('Password must be at least 6 characters long');
+      return;
+    }
+
+    setLoading(signupBtn, true);
+
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            name: name
+          }
+        }
+      });
+
+      if (error) {
+        throw new Error(error.message);
+      }
+
+      // Store auth data
+      if (data.session) {
+        storeAuthData(data.session);
+        showSuccess('Sign up successful! Redirecting...');
+        setTimeout(() => {
+          window.location.href = 'index.html';
+        }, 1000);
+      } else {
+        showSuccess('Sign up successful! Please check your email to verify your account.');
+      }
+
+    } catch (error) {
+      console.error('Sign up error:', error);
+      showError(error.message || 'Failed to sign up. Please try again.');
+    } finally {
+      setLoading(signupBtn, false);
+    }
+  });
+
+  // Forgot password (placeholder)
+  document.getElementById('forgotPasswordLink').addEventListener('click', (e) => {
+    e.preventDefault();
+    showError('Password reset feature coming soon!');
+  });
 
   // Guest mode
   document.getElementById('guestBtn').addEventListener('click', () => {
