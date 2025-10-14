@@ -4,10 +4,15 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 
 // Initialize Supabase client
 let supabase;
-if (typeof createClient !== 'undefined') {
-  supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-} else {
-  console.error('Supabase library not loaded. Please ensure @supabase/supabase-js is loaded before this script.');
+try {
+  if (typeof createClient !== 'undefined') {
+    supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    console.log('✅ Supabase initialized successfully');
+  } else {
+    console.warn('⚠️ Supabase library not loaded. Using localStorage only.');
+  }
+} catch (error) {
+  console.warn('⚠️ Failed to initialize Supabase:', error);
 }
 
 // Get auth token
@@ -54,16 +59,16 @@ const api = {
   // Get all data
   async getData() {
     try {
-      // Check if in guest mode
-      if (isGuestMode()) {
-        // Use localStorage for guest mode
+      // Check if in guest mode or if supabase is not available
+      if (isGuestMode() || !supabase) {
+        // Use localStorage for guest mode or when supabase is not available
         return this.getLocalData();
       }
 
       const token = getAuthToken();
       if (!token) {
-        window.location.href = 'auth.html';
-        return;
+        // No token, use localStorage
+        return this.getLocalData();
       }
 
       // Set auth header
@@ -126,8 +131,8 @@ const api = {
   // Save session
   async saveSession(duration, type) {
     try {
-      // Guest mode - just return success
-      if (isGuestMode()) {
+      // Guest mode or no supabase - just return success
+      if (isGuestMode() || !supabase) {
         return { success: true };
       }
 
@@ -177,8 +182,8 @@ const api = {
   // Add activity
   async addActivity(type, title, duration) {
     try {
-      // Guest mode - use localStorage
-      if (isGuestMode()) {
+      // Guest mode or no supabase - use localStorage
+      if (isGuestMode() || !supabase) {
         const data = this.getLocalData();
         const newActivity = {
           type: type,
@@ -210,8 +215,8 @@ const api = {
   // Add task
   async addTask(text) {
     try {
-      // Guest mode - use localStorage
-      if (isGuestMode()) {
+      // Guest mode or no supabase - use localStorage
+      if (isGuestMode() || !supabase) {
         const data = this.getLocalData();
         const newTask = {
           id: Date.now().toString(),
@@ -243,8 +248,8 @@ const api = {
   // Update task
   async updateTask(id, updates) {
     try {
-      // Guest mode - use localStorage
-      if (isGuestMode()) {
+      // Guest mode or no supabase - use localStorage
+      if (isGuestMode() || !supabase) {
         const data = this.getLocalData();
         const taskIndex = data.tasks.findIndex(t => t.id === id);
         if (taskIndex !== -1) {
@@ -281,8 +286,8 @@ const api = {
   // Delete task
   async deleteTask(id) {
     try {
-      // Guest mode - use localStorage
-      if (isGuestMode()) {
+      // Guest mode or no supabase - use localStorage
+      if (isGuestMode() || !supabase) {
         const data = this.getLocalData();
         data.tasks = data.tasks.filter(t => t.id !== id);
         this.saveLocalData(data);
@@ -308,8 +313,8 @@ const api = {
   // Clear activities
   async clearActivities() {
     try {
-      // Guest mode - use localStorage
-      if (isGuestMode()) {
+      // Guest mode or no supabase - use localStorage
+      if (isGuestMode() || !supabase) {
         const data = this.getLocalData();
         data.activities = [];
         this.saveLocalData(data);
